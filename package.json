@@ -1,0 +1,18 @@
+{
+  "name": "book",
+  "type": "module",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/yoon-junseo/book",
+  "author": "yoon-junseo <ysj6844@naver.com>",
+  "license": "MIT",
+  "dependencies": {
+    "chai": "^4.3.6",
+    "mocha": "^9.2.1",
+    "nodemon": "^2.0.15"
+  },
+  "scripts": {
+    "start": "nodemon",
+    "test": "nodemon --exec `mocha ${0}`"
+  }
+}
