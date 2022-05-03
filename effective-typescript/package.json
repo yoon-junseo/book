@@ -1,0 +1,10 @@
+{
+  "scripts": {
+    "start": "nodemon --exec 'ts-node' --cwd $INIT_CWD"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.15",
+    "ts-node": "^10.7.0",
+    "typescript": "^4.6.3"
+  }
+}
