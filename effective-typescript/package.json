@@ -1,6 +1,8 @@
 {
   "scripts": {
-    "start": "nodemon --exec 'ts-node' --cwd $INIT_CWD"
+    "start": "yarn run build:live",
+    "build": "tsc -p .",
+    "build:live": "nodemon --watch './' --exec ts-node example.ts"
   },
   "devDependencies": {
     "nodemon": "^2.0.15",
