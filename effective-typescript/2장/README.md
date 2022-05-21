@@ -219,3 +219,126 @@ type Exclude<T, U> = T extends U ? never : T;
 ```
 
 ![ㅎㅎ](https://user-images.githubusercontent.com/28842641/167082666-088b1239-d75d-4c06-80e0-75f3eb4fd5e3.jpg)
+
+## 아이템 8 - 타입 공간과 값 공간의 심벌 구분하기
+
+- 타입스크립트의 심벌(symbol)은 타입 공간이나 값 공간 중의 한 곳에 존재한다.
+- 심벌은 이름이 같더라도 속하는 공간에 따라 다른 것을 나타낼 수 있다.
+
+```typescript
+interface Cylinder {
+  radius: number;
+  height: number;
+}
+
+const Cylinder = (radius: number, height: number) => ({ radius, height });
+```
+
+- interface Cylinder에서 Cylinder는 타입으로 쓰인다. const Cylinder에서 Cylinder와 이름은 같지만 값으로 쓰이며, 서로 관련이 없다. 따라서 Cylinder는 타입으로 쓰일 수도 있고, 값으로 쓰일 수도 있다.
+
+```typescript
+function calculateVolume(shape: unknown) {
+  if (shape instanceof Cylinder) {
+    shape.radius; // ~~~ '{}' 형식에 'radius' 속성이 없습니다.
+  }
+}
+```
+
+- instanceof는 자바스크립트의 런타임 연산자이고, 값에 대해서 연산을 한다. 따라서 instanceof Cylinder는 타입이 아니라 함수를 참조한다.
+
+<br />
+
+```typescript
+type T1 = "string literal";
+type T2 = 123;
+const v1 = "string literal";
+const v2 = 123;
+```
+
+- 일반적으로 type이나 interface 다음에 나오는 심벌은 타입인 반면, const나 let 선언에 쓰이는 것은 값이다.
+- 타입 선언 (:) 또는 단언문 (as) 다음에 나오는 심벌은 타입인 반면, = 다음에 나오는 모든 것은 값이다.
+
+<br />
+
+- class와 enum은 상황에 따라 타입과 값 두 가지 모두 가능한 예약어이다.
+
+```typescript
+class Cylinder {
+  radius = 1;
+  height = 1;
+}
+
+function calculateVolume(shape: unknown) {
+  if (shape instanceof Cylinder) {
+    shape; // 정상, 타입은 Cylinder
+    shape.radius; // 정상, 타입은 number
+  }
+}
+```
+
+- class가 타입으로 쓰일 때는 형태(속성과 메서드)가 사용되는 반면, 값으로 쓰일 때는 생성자가 사용된다.
+
+<br />
+
+- 타입에서 쓰일 때와 값에서 쓰일 때 다른 기능을 하는 것 중 하나인 typeof
+
+```typescript
+type T1 = typeof p; // 타입은 Person
+type T2 = typeof email; // 타입은 (p: Person, subject: string, body: string) => Response
+
+const v1 = typeof p; // 값은 "object"
+const v2 = typeof email; // 값은 "string"
+```
+
+- 값의 관점에서 typeof는 자바스크립트 런타임의 typeof 연산자가 된다.
+- class 키워드는 값과 타입 두 가지로 모두 사용된다. 따라서 class에 대한 typeof는 상황에 따라 다르게 동작한다.
+
+```typescript
+const v = typeof Cylinder; // 값이 "function"
+type T = typeof Cylinder; // 타입이 typeof Cylinder
+```
+
+- Cylinder는 인스턴스의 타입이 아니라, new 키워드를 사용할 때 볼 수 있는 생성자 함수이다.
+
+```typescript
+declare let fn: T;
+const c = new fn(); // 타입이 Cylinder
+```
+
+<br />
+
+- 다음과 같이 InstanceType 제너릭을 사용해 생성자 타입과 인스턴스 타입을 전환할 수 있다.
+
+```typescript
+type C = InstanceType<typeof Cylinder>; // 타입이 Cylinder
+```
+
+<br />
+
+- 속성 접근자인 []는 타입으로 쓰일 때에도 동일하게 동작한다. 그러나 obj['field']와 obj.field는 값이 동일하더라도 타입은 다를 수 있다. 타입의 속성을 얻기 위해서는 obj['field']를 사용해야 한다.
+
+```typescript
+const first: Person["first"] = p["first"]; // 또는 p.first
+// ------                   ----------- 값
+//        ------- -------               타입
+```
+
+<br />
+
+```typescript
+type PersonEl = Person["first" | "last"]; // 타입은 string
+type Tuple = [string, number, Date];
+type TupleEl = Tuple[number]; // 타입은 string | number | Date
+```
+
+- 타입과 값 공간에서 다른 의미를 가지는 코드 패턴들이 존재한다.
+  - 값으로 쓰이는 this는 자바스크립트의 this 키워드이다. 타입으로 쓰이는 this는, 일명 다형성 this라고 불리는 this의 타입스크립트 타입이다. 서브클래스의 메서드 체인을 구현할 때 유용하다.
+  - 값에서 &와 | 는 AND와 OR 비트연산이다. 타입에서는 인터섹션과 유니온이다.
+  - const는 새 변수를 선언하지만, as const는 리터럴 또는 리터럴 표현식의 추론된 타입을 바꾼다.
+  - extends는 서브클래스(class A extends B) 또는 서브타입(interface A extends B) 또는 제너릭 타입의 한정자(Generic<T extends number>)를 정의할 수 있다.
+  - in은 루프(for (key in object)) 또는 매핑된(mapped) 타입에 등장한다.
+
+### 요약
+
+- 모든 값은 타입을 가지지만, 타입은 값을 가지지 않는다.
+- class나 enum 같은 키워드는 타입과 값 두 가지로 사용될 수 있다.
