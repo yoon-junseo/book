@@ -155,3 +155,29 @@ console.log(
     )
   )
 );
+
+// 1-13 함수를 리턴하는 bvalue
+// 1.1의 addMaker
+function addMaker(a) {
+  return function (b) {
+    return a + b;
+  };
+}
+
+function bvalue(key) {
+  return function (obj) {
+    return obj[key];
+  };
+}
+
+bvalue("a")({ a: "hi", b: "hello" }); // hi
+
+// 1-14 bvalue로 map의 iterable 만들기
+console.log(
+  logLength(
+    map(
+      filter(users, (user) => user.age < 30),
+      bvalue("age")
+    )
+  )
+);
