@@ -100,4 +100,4 @@ console.log(obj); // {}
 
 delete Array.prototype.push;
 var arr1 = [1, 2, 3];
-arr1.push(4);
+arr1.push(4); // Uncaught TypeError: arr1.push is not a function
